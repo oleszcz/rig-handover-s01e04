@@ -1,0 +1,57 @@
+name: Publish review preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      include_marker:
+        description: Include the lane marker for initial review
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --global pnpm@12.16.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test && pnpm typecheck
+      - name: Save self-contained HTML from rig
+        env:
+          LANE_ID: lane-07
+          LANE_MARKER: ${{ inputs.include_marker && secrets.LANE_MARKER || '' }}
+        run: |
+          mkdir -p var/preview
+          pnpm exec tsx --eval '
+            import { writeFileSync } from "node:fs";
+            import { createApp } from "./src/app.tsx";
+            (async () => {
+              const response = await createApp().request("/digest/2026-10-28");
+              if (response.status !== 200) throw new Error("Digest did not render");
+              writeFileSync("var/preview/index.html", await response.text());
+            })();
+          '
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: var/preview
+          retention-days: 1
+      - name: Deploy
+        id: deploy
+        uses: actions/deploy-pages@v4
