@@ -159,10 +159,13 @@ describe('status board links to digests', () => {
 
     const totals = readNight(runs, night)?.totals;
     expect(totals).toEqual({ ok: 3, retry: 3, fail: 1 });
-    const linkIndex = html.indexOf(`href="/digest/${night}"`);
-    const beside = html.slice(linkIndex, linkIndex + 400);
-    expect(beside).toMatch(/ok\D{0,20}3/);
-    expect(beside).toMatch(/retry\D{0,20}3/);
-    expect(beside).toMatch(/fail\D{0,20}1/);
+    const table = (html.match(/<table[\s\S]*?<\/table>/g) ?? [])
+      .find((candidate) => candidate.includes(`href="/digest/${night}"`)) ?? '';
+    const headers = Array.from(table.matchAll(/<th\b[^>]*>(.*?)<\/th>/gs), (match) => match[1].trim());
+    expect(headers).toEqual(['night', 'ok', 'retry', 'fail', 'digest']);
+    const row = rowFor(table, `href="/digest/${night}"`);
+    const cells = Array.from(row.matchAll(/<td\b[^>]*>(.*?)<\/td>/gs), (match) => match[1].trim());
+    expect(['ok', 'retry', 'fail'].map((status) => cells[headers.indexOf(status)]))
+      .toEqual(['3', '3', '1']);
   });
 });
