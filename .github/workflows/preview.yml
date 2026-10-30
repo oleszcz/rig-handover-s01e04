@@ -35,7 +35,8 @@ jobs:
       - name: Save self-contained HTML from rig
         env:
           LANE_ID: lane-07
-          LANE_MARKER: ${{ inputs.include_marker && secrets.LANE_MARKER || '' }}
+          LANE_MARKER: ${{ github.event.inputs.include_marker == 'true' && secrets.LANE_MARKER || '' }}
+          INCLUDE_MARKER: ${{ github.event.inputs.include_marker }}
         run: |
           mkdir -p var/preview
           pnpm exec tsx --eval '
@@ -44,7 +45,11 @@ jobs:
             (async () => {
               const response = await createApp().request("/digest/2026-10-28");
               if (response.status !== 200) throw new Error("Digest did not render");
-              writeFileSync("var/preview/index.html", await response.text());
+              const html = await response.text();
+              if (process.env.INCLUDE_MARKER !== "true" && !html.includes("no marker set")) {
+                throw new Error("Cleanup preview still has a marker");
+              }
+              writeFileSync("var/preview/index.html", html);
             })();
           '
       - uses: actions/configure-pages@v5
