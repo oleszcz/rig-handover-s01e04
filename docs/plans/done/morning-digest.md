@@ -1,6 +1,6 @@
 ---
 plan: morning-digest
-status: ready
+status: done
 owner: rook
 opened: 2026-10-29
 ---
@@ -77,3 +77,19 @@ page again with `LANE_MARKER` unset (the banner reads "no marker set") and uploa
 link. Move this plan to `docs/plans/done/` with its issue list.
 
 Done when: the preview link no longer shows the lane marker.
+
+## Issue list and completion
+
+- §1: https://github.com/oleszcz/rig-handover-s01e04/issues/1
+- §2a: https://github.com/oleszcz/rig-handover-s01e04/issues/2
+- §2b: https://github.com/oleszcz/rig-handover-s01e04/issues/3
+- §2c: https://github.com/oleszcz/rig-handover-s01e04/issues/4
+- §2d: https://github.com/oleszcz/rig-handover-s01e04/issues/5
+- §3: https://github.com/oleszcz/rig-handover-s01e04/issues/6
+- §4: https://github.com/oleszcz/rig-handover-s01e04/issues/7
+
+The course confirmed the reviewer had seen the preview before cleanup.
+With separate human approval, the preview was replaced at the same URL:
+https://oleszcz.github.io/rig-handover-s01e04/.
+Public verification returned HTTP 200, "no marker set", and no previous marker.
+All 30 tests and TypeScript checks passed, including the cleanup deployment.
