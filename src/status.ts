@@ -1,12 +1,20 @@
 import { readdirSync } from 'node:fs';
 import type { RigConfig } from './config.js';
+import { readNight } from './digest/read-night.js';
+import type { DigestNight } from './digest/types.js';
 import { lastBeat, type Beat } from './heartbeat.js';
+
+// Totals are null when the night can't be read back (file vanished between listing and reading).
+export type NightSummary = {
+  night: string;
+  totals: DigestNight['totals'] | null;
+};
 
 export type Status = {
   adapter: string;
   installed: string;
   lastBeat: Beat | null;
-  nights: string[];
+  nights: NightSummary[];
 };
 
 // Nights on disk = runs/<YYYY-MM-DD>.jsonl, newest first.
@@ -27,6 +35,9 @@ export function readStatus(config: RigConfig): Status {
     adapter: config.adapter,
     installed: config.installed,
     lastBeat: lastBeat(),
-    nights: nightsOnDisk(config.runsDir),
+    nights: nightsOnDisk(config.runsDir).map((night) => ({
+      night,
+      totals: readNight(config.runsDir, night)?.totals ?? null,
+    })),
   };
 }
